@@ -1,11 +1,12 @@
 from os import path
-import random
 from tkinter import *
 from tkinter.font import Font
+from tkinter.messagebox import askyesno
 
 import cv2
 import pandas
 import time
+import random
 
 todo_list = []
 done_list = []
@@ -21,14 +22,14 @@ def update_bars(frame, flag):
             widget.destroy()
         index = 0
         for todo in todo_list:
-            Label(frame, text=path.basename(todo), wraplength=100).pack()
+            Label(frame, text=path.basename(todo), wraplength=100).grid(row=index, column=0, padx=20)
     if flag == 1:
         for widget in frame.winfo_children():
             widget.destroy()
         index = 0
         for done in done_list:
             Label(frame, text=results_list[index]).grid(row=index, column=0, padx=(20, 0))
-            Label(frame, text=path.basename(done), wraplength=100).grid(row=index, column=1)
+            Label(frame, text=path.basename(done), wraplength=100).grid(row=index, column=1, padx=(0, 20))
             index += 1
 
 
@@ -73,11 +74,13 @@ def process(filenames):
 
     # Abort button setup
     def abort_process():
-        global run
-        if run:
-            run = False
-            abort_alert = Label(progress_frame, text="Process Aborted!", fg="red")
-            abort_alert.pack()
+        answer = askyesno(title="Confirmation", message="Are you sure you want to abort the analysis?")
+        if answer:
+            global run
+            if run:
+                run = False
+                abort_alert = Label(progress_frame, text="Process Aborted!", fg="red")
+                abort_alert.pack()
 
     abort_button = Button(progress_frame, text="Abort", command=abort_process)
     abort_button.pack(pady=15)

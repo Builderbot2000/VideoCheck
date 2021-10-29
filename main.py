@@ -4,6 +4,8 @@ from tkinter.font import Font
 from tkinter import filedialog
 from process import process, todo_list, done_list
 
+VERSION_INFO = "Build 1.1.3"
+
 if __name__ == '__main__':
     # Root frame setup
     root = Tk()
@@ -61,7 +63,7 @@ if __name__ == '__main__':
         about_screen.title("About")
         about_screen.iconbitmap("resources/info.ico")
         about_screen.geometry("500x300")
-        about_text = Label(about_screen, text="Build 1.1.2", pady=15).pack()
+        about_text = Label(about_screen, text=VERSION_INFO, pady=15).pack()
 
 
     # Title frame layout setup
