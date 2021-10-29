@@ -61,7 +61,7 @@ if __name__ == '__main__':
         about_screen.title("About")
         about_screen.iconbitmap("resources/info.ico")
         about_screen.geometry("500x300")
-        about_text = Label(about_screen, text="Build 1.0.1", pady=15).pack()
+        about_text = Label(about_screen, text="Build 1.1.2", pady=15).pack()
 
 
     # Title frame layout setup

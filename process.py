@@ -1,4 +1,5 @@
 from os import path
+import random
 from tkinter import *
 from tkinter.font import Font
 
@@ -8,6 +9,9 @@ import time
 
 todo_list = []
 done_list = []
+results_list = []
+# Variable indicating whether the analysis process is running
+run = True
 
 
 # Updates the to do bar or the done bar based on the two lists, flag 0 is to do and flag 1 is done
@@ -15,27 +19,26 @@ def update_bars(frame, flag):
     if flag == 0:
         for widget in frame.winfo_children():
             widget.destroy()
+        index = 0
         for todo in todo_list:
-            todo_label = Label(frame, text=path.basename(todo), wraplength=100)
-            todo_label.pack()
+            Label(frame, text=path.basename(todo), wraplength=100).pack()
     if flag == 1:
         for widget in frame.winfo_children():
             widget.destroy()
+        index = 0
         for done in done_list:
-            done_label = Label(frame, text=path.basename(done), wraplength=100)
-            done_label.pack()
-
-
-def abort_process():
-    print("EMPTY")
+            Label(frame, text=results_list[index]).grid(row=index, column=0, padx=(20, 0))
+            Label(frame, text=path.basename(done), wraplength=100).grid(row=index, column=1)
+            index += 1
 
 
 # Processing screen that pops up after clicking on "Analyze Videos"
 def process(filenames):
-
     # Initialize to do list
     for filename in filenames:
         todo_list.append(filename)
+    global run
+    run = True
 
     # Process screen layout setup
     process_screen = Toplevel()
@@ -47,7 +50,9 @@ def process(filenames):
     def on_process_close():
         todo_list.clear()
         done_list.clear()
+        results_list.clear()
         process_screen.destroy()
+
     process_screen.protocol("WM_DELETE_WINDOW", on_process_close)
 
     # Left "To Do" bar setup
@@ -65,8 +70,18 @@ def process(filenames):
     current_label.pack()
     progress_percentage_label = Label(progress_frame, text="0/0")
     progress_percentage_label.pack()
+
+    # Abort button setup
+    def abort_process():
+        global run
+        if run:
+            run = False
+            abort_alert = Label(progress_frame, text="Process Aborted!", fg="red")
+            abort_alert.pack()
+
     abort_button = Button(progress_frame, text="Abort", command=abort_process)
     abort_button.pack(pady=15)
+
     progress_frame.pack(side=LEFT, expand=True, pady=10)
 
     # Right "Done" bar setup
@@ -90,7 +105,7 @@ def process(filenames):
         frame_total = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
 
         # Process each frame in video
-        while frame_index != frame_total:
+        while frame_index != frame_total and run:
             # Get frame
             check, frame = video.read()
 
@@ -101,10 +116,23 @@ def process(filenames):
 
             frame_index += 1
 
-        done_list.append(todo)
-        update_bars(todo_frame, 0)
-        update_bars(done_frame, 1)
-        progress_percentage_label.configure(text="0/0")
-        process_screen.update()
+        # Restore progress display to default state
+        if run:
+            done_list.append(todo)
 
-    current_label.configure(text="None")
+            # Determine pass/fail
+            passed = bool(random.getrandbits(1))
+
+            # Attach pass/fail tag to done items
+            pass_status = "[PASS]"
+            if not passed:
+                pass_status = "[FAIL]"
+            results_list.insert(done_list.index(todo), pass_status)
+
+            update_bars(todo_frame, 0)
+            update_bars(done_frame, 1)
+            progress_percentage_label.configure(text="0/0")
+            process_screen.update()
+
+    if run:
+        current_label.configure(text="None")
