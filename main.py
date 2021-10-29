@@ -21,7 +21,7 @@ if __name__ == '__main__':
     # Button frame events
     def analyze_button_event():
         filenames = \
-            filedialog.askopenfilename(title="Select A Video To Process", filetypes=(("MP4 files", "*.mp4"), ("AVI files", "*.avi")))
+            filedialog.askopenfilenames(title="Select A Video To Process", filetypes=[("Video Files", "*.mp4 *.avi")])
         process(filenames)
 
     def settings_button_event():
@@ -69,8 +69,8 @@ if __name__ == '__main__':
     # Title frame layout setup
     title_frame = Frame(root)
     title_label = Label(title_frame, text="Power Cycle Helper")
-    title_font = Font(family="Times New Roman", size=20)
-    title_label.configure(font=title_font)
+    title_label_font = Font(family="Times New Roman", size=20)
+    title_label.configure(font=title_label_font)
     title_label.pack(pady=10)
     icon = ImageTk.PhotoImage(Image.open("resources/dvr-icon-3.jpg").resize((150, 100), Image.ANTIALIAS))
     icon_label = Label(title_frame, image=icon)
@@ -82,6 +82,7 @@ if __name__ == '__main__':
 
     title_frame.pack(side=LEFT, fill="none", expand=True, padx=(0, 10))
 
+    # Initialization
     root.mainloop()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
