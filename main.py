@@ -1,15 +1,8 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
 from tkinter import *
 from PIL import ImageTk, Image
 from tkinter.font import Font
 from tkinter import filedialog
-
-# Press the green button in the gutter to run the script.
-from process import process
+from process import process, todo_list, done_list
 
 if __name__ == '__main__':
     # Root frame setup
@@ -22,7 +15,9 @@ if __name__ == '__main__':
     def analyze_button_event():
         filenames = \
             filedialog.askopenfilenames(title="Select A Video To Process", filetypes=[("Video Files", "*.mp4 *.avi")])
-        process(filenames)
+        if filenames:
+            process(filenames)
+
 
     def settings_button_event():
         settings_screen = Toplevel()
@@ -34,8 +29,10 @@ if __name__ == '__main__':
         settings_screen_label.configure(font=settings_title_font)
         settings_screen_label.pack()
 
+
     def exit_button_event():
         root.destroy()
+
 
     # Button frame layout setup
     button_frame = Frame(root)
@@ -65,6 +62,7 @@ if __name__ == '__main__':
         about_screen.iconbitmap("resources/info.ico")
         about_screen.geometry("500x300")
         about_text = Label(about_screen, text="Build 1.0.1", pady=15).pack()
+
 
     # Title frame layout setup
     title_frame = Frame(root)

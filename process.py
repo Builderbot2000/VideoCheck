@@ -1,7 +1,10 @@
+from os import path
 from tkinter import *
 from tkinter.font import Font
-from os import path
 
+import cv2
+import pandas
+import time
 
 todo_list = []
 done_list = []
@@ -29,6 +32,7 @@ def abort_process():
 
 # Processing screen that pops up after clicking on "Analyze Videos"
 def process(filenames):
+
     # Initialize to do list
     for filename in filenames:
         todo_list.append(filename)
@@ -38,6 +42,13 @@ def process(filenames):
     process_screen.title("Processing Videos...")
     process_screen.iconbitmap("resources/processing.ico")
     process_screen.geometry("500x300")
+
+    # Process window close event handler: clear lists after process end
+    def on_process_close():
+        todo_list.clear()
+        done_list.clear()
+        process_screen.destroy()
+    process_screen.protocol("WM_DELETE_WINDOW", on_process_close)
 
     # Left "To Do" bar setup
     todo_frame = LabelFrame(process_screen, text="To Do")
@@ -62,20 +73,38 @@ def process(filenames):
     done_frame = LabelFrame(process_screen, text="Done")
     update_bars(done_frame, 1)
     done_frame.pack(side=LEFT, expand=True, fill="both", padx=10, pady=10)
+    process_screen.update()
 
     # Process loop
-    # Process each video
-    print(todo_list)
-    for todo in todo_list:
-        print(todo)
-        print("Do Nothing!")
+    # Process each video in to do list
+    while todo_list:
+        todo = todo_list.pop()
         current_label.configure(text=path.basename(todo))
 
-        # Process each frame in video
-        # EMPTY
+        # Prepare video for processing
+        df = pandas.DataFrame(columns=["Start", "End"])
+        # noinspection PyUnresolvedReferences
+        video = cv2.VideoCapture(todo)
+        frame_index = 0
+        # noinspection PyUnresolvedReferences
+        frame_total = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
 
-        done_list.append(todo_list.pop(0))
+        # Process each frame in video
+        while frame_index != frame_total:
+            # Get frame
+            check, frame = video.read()
+
+            # Update progress display
+            progress_percentage = str(frame_index) + "/" + str(frame_total)
+            progress_percentage_label.configure(text=progress_percentage)
+            process_screen.update()
+
+            frame_index += 1
+
+        done_list.append(todo)
         update_bars(todo_frame, 0)
         update_bars(done_frame, 1)
+        progress_percentage_label.configure(text="0/0")
+        process_screen.update()
 
     current_label.configure(text="None")
