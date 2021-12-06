@@ -3,7 +3,9 @@ from tkinter import *
 from tkinter.font import Font
 from tkinter.messagebox import askyesno
 
-import cv2
+# Quirky import for autocomplete to work
+import numpy
+from cv2 import cv2
 import pandas
 import time
 import random
@@ -11,8 +13,9 @@ import random
 todo_list = []
 done_list = []
 results_list = []
+
 # Variable indicating whether the analysis process is running
-run = True
+running = True
 
 
 # Updates the to do bar or the done bar based on the two lists, flag 0 is to do and flag 1 is done
@@ -35,11 +38,14 @@ def update_bars(frame, flag):
 
 # Processing screen that pops up after clicking on "Analyze Videos"
 def process(filenames):
+    # Extract settings variable
+    threshold = 30
+
     # Initialize to do list
     for filename in filenames:
         todo_list.append(filename)
-    global run
-    run = True
+    global running
+    running = True
 
     # Process screen layout setup
     process_screen = Toplevel()
@@ -76,9 +82,9 @@ def process(filenames):
     def abort_process():
         answer = askyesno(title="Confirmation", message="Are you sure you want to abort the analysis?")
         if answer:
-            global run
-            if run:
-                run = False
+            global running
+            if running:
+                running = False
                 abort_alert = Label(progress_frame, text="Process Aborted!", fg="red")
                 abort_alert.pack()
 
@@ -107,12 +113,39 @@ def process(filenames):
         # noinspection PyUnresolvedReferences
         frame_total = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
 
-        # Process each frame in video
-        while frame_index != frame_total and run:
-            # Get frame
-            check, frame = video.read()
+        stutter = 0
+        no_diff = 0
 
-            # Update progress display
+        # Process each frame in video
+        prev_frame = None
+        while frame_index != frame_total-1 and running:
+            # Get frame and convert to greyscale
+            check, frame = video.read()
+            grey_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+            # Skip initial frame and set it as reference previous frame
+            if prev_frame is None:
+                prev_frame = grey_frame
+                continue
+
+            # Determine difference between frame and reference previous frame
+            is_diff = True
+            height, width = grey_frame.shape
+            for x in range(0, width):
+                for y in range(0, height):
+                    # Check if pixel is equal between two frames
+                    # print("Current Pixel: " + str(grey_frame[y, x]))
+                    # print("Previous Pixel: " + str(prev_frame[y, x]))
+                    if grey_frame[y, x] != prev_frame[y, x]:
+                        is_diff = True
+                        break
+                    # print("x=" + str(x) + "  y=" + str(y))
+            if not is_diff:
+                no_diff += 1
+            if no_diff > 30:
+                stutter += 1
+
+            # Update progress display to current progress
             progress_percentage = str(frame_index) + "/" + str(frame_total)
             progress_percentage_label.configure(text=progress_percentage)
             process_screen.update()
@@ -120,11 +153,14 @@ def process(filenames):
             frame_index += 1
 
         # Restore progress display to default state
-        if run:
+        if running:
             done_list.append(todo)
 
             # Determine pass/fail
-            passed = bool(random.getrandbits(1))
+            print("Pass/Fail")
+            passed = True
+            if stutter >= 2:
+                passed = False
 
             # Attach pass/fail tag to done items
             pass_status = "[PASS]"
@@ -137,5 +173,5 @@ def process(filenames):
             progress_percentage_label.configure(text="0/0")
             process_screen.update()
 
-    if run:
+    if running:
         current_label.configure(text="None")
