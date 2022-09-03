@@ -118,7 +118,7 @@ def process(filenames):
 
         # Process each frame in video
         prev_frame = None
-        while frame_index != frame_total-1 and running:
+        while frame_index != frame_total-2 and running:
             # Get frame and convert to greyscale
             check, frame = video.read()
             grey_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -129,7 +129,7 @@ def process(filenames):
                 continue
 
             # Determine difference between frame and reference previous frame
-            is_diff = True
+            diff = 0
             height, width = grey_frame.shape
             for x in range(0, width):
                 for y in range(0, height):
@@ -137,12 +137,16 @@ def process(filenames):
                     # print("Current Pixel: " + str(grey_frame[y, x]))
                     # print("Previous Pixel: " + str(prev_frame[y, x]))
                     if grey_frame[y, x] != prev_frame[y, x]:
-                        is_diff = True
+                        # cv2.imshow("previous frame", prev_frame)
+                        # cv2.imshow("current frame", grey_frame)
+                        diff += 1
+                    if diff >= 5:
                         break
                     # print("x=" + str(x) + "  y=" + str(y))
-            if not is_diff:
+            if diff < 5:
+                print("SAME")
                 no_diff += 1
-            if no_diff > 30:
+            if no_diff > 3:
                 stutter += 1
 
             # Update progress display to current progress
@@ -157,7 +161,6 @@ def process(filenames):
             done_list.append(todo)
 
             # Determine pass/fail
-            print("Pass/Fail")
             passed = True
             if stutter >= 2:
                 passed = False
